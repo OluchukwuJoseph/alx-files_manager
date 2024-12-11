@@ -1,12 +1,12 @@
-import { createClient } from "redis";
-import { promisify } from "util";
+import { createClient } from 'redis';
+import { promisify } from 'util';
 
 /**
  * RedisClient class provides an abstraction layer for Redis operations
  * Manages a Redis client with promisified methods for common operations
  */
 class RedisClient {
-   /**
+  /**
    * Creates a new Redis client connection
    * - Connects to localhost on default Redis port (6379)
    * - Sets up error handling
@@ -18,7 +18,7 @@ class RedisClient {
       port: 6379,
     });
 
-     // Create Redis client with default localhost configuration
+    // Create Redis client with default localhost configuration
     this.client.on('error', (error) => console.log(`A redis error occured: ${error.message}`));
 
     // Promisify core Redis methods to use with async/await
@@ -42,10 +42,11 @@ class RedisClient {
    * @returns {Promise<*>} The value associated with the key, or null if not found
    */
   async get(key) {
-    return await this.redisGet(key);
+    const value = await this.redisGet(key);
+    return value;
   }
 
-   /**
+  /**
    * Sets a key-value pair in Redis with an expiration
    * @param {string} key - The key to set
    * @param {*} value - The value to store
@@ -53,16 +54,18 @@ class RedisClient {
    * @returns {Promise<*>} Result of the set operation
    */
   async set(key, value, duration) {
-    return await this.redisSetex(key, duration, value);
+    const result = await this.redisSetex(key, duration, value);
+    return result;
   }
 
-   /**
+  /**
    * Deletes a key from Redis
    * @param {string} key - The key to delete
    * @returns {Promise<number>} Number of keys deleted (0 or 1)
    */
   async del(key) {
-    return await this.redisDel(key);
+    const result = await this.redisDel(key);
+    return result;
   }
 }
 
