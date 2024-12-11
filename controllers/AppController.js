@@ -24,9 +24,9 @@ export default class AppController {
    * }
    */
   static getStatus(req, res) {
-    res.send({ 
-      "redis": redisClient.isAlive(), 
-      "db": dbClient.isAlive() 
+    res.send({
+      redis: redisClient.isAlive(),
+      db: dbClient.isAlive(),
     });
   }
 
@@ -47,9 +47,9 @@ export default class AppController {
    * }
    */
   static async getStats(req, res) {
-    res.send({ 
-      "users": await dbClient.nbUsers(), 
-      "files": await dbClient.nbFiles() 
+    res.send({
+      users: await dbClient.nbUsers(),
+      files: await dbClient.nbFiles(),
     });
   }
 }

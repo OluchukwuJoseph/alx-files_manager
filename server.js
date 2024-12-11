@@ -5,7 +5,8 @@ const PORT = process.env.PORT || 5000;
 // Create an Express server.
 const app = express();
 
-app.use('' ,index);
+app.use(express.json());
+app.use('', index);
 
 app.listen(PORT, () => {
   console.log(`Server is running on localhost ${PORT}`);
