@@ -1,7 +1,5 @@
 import { MongoClient } from 'mongodb';
 
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = process.env.DB_PORT || 27017;
 /**
  * DBClient manages database connections and provides utility methods for MongoDB interactions.
  *
@@ -18,9 +16,11 @@ class DBClient {
    */
   constructor() {
     // Connection URL constructed from environment variables or defaults
+    const DB_HOST = process.env.DB_HOST || 'localhost';
+    const DB_PORT = process.env.DB_PORT || 27017;
     const url = `mongodb://${DB_HOST}:${DB_PORT}`;
 
-    this.client = new MongoClient(url, { useUnifiedTopology: true });
+    this.client = new MongoClient(url, { useUnifiedTopology: true, useNewUrlParser: true });
 
     this.client.connect()
       .then(() => {
