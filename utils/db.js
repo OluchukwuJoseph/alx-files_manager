@@ -127,6 +127,8 @@ class DBClient {
       this.usersCollection = this.db.collection('users');
     }
 
+    console.log(password, SHA1(password));
+    console.log(password === SHA1(password));
     // Insert new user with hashed password
     const result = await this.usersCollection.insertOne({
       email,

@@ -13,7 +13,7 @@ export default class AuthController {
       const credentials = BasicAuth.getCredentials(authorizationHeader);
 
       // Get user that matches the Credentials from db
-      const user = dbClient.getUser(credentials.email);
+      const user = await dbClient.getUser(credentials.email);
       if (!user || user.password !== SHA1(credentials.password)) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -35,9 +35,15 @@ export default class AuthController {
     const token = req.headers['x-token'];
     if (!token) {
       res.status(400).json({ error: 'Missing token' });
+      return;
     }
 
-    await redisClient.del(`auth_${token}`);
-    res.status(204);
+    const result = await redisClient.del(`auth_${token}`);
+    if (!result) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    res.status(204).json();
   }
 }

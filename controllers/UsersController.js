@@ -71,18 +71,21 @@ export default class UserController {
 
     if (!token) {
       res.status(400).json({ error: 'Missing token' });
+      return;
     }
 
     const email = await redisClient.get(`auth_${token}`);
     if (!email) {
       res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
-    const user = dbClient.getUser(email);
+    const user = await dbClient.getUser(email);
     if (!user) {
       res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
-    res.json({ id: user.id, email: user.email });
+    res.json({ id: user._id, email: user.email });
   }
 }
