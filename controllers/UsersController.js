@@ -1,4 +1,5 @@
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 /**
  * UserController manages user-related operations, primarily user registration.
@@ -41,20 +42,20 @@ export default class UserController {
 
     // Validate email presence
     if (!email) {
-      res.status(400).send('Missing email');
+      res.status(400).json({ error: 'Missing email' });
       return;
     }
 
     // Validate password presence
     if (!password) {
-      res.status(400).send('Missing password');
+      res.status(400).json({ error: 'Missing password' });
       return;
     }
 
     // Check if user already exists
     const user = await dbClient.getUser(email);
     if (user) {
-      res.status(400).send('Already exist');
+      res.status(400).json({ error: 'Already exist' });
       return;
     }
 
@@ -63,5 +64,25 @@ export default class UserController {
 
     // Send successful response with user details
     res.json({ id: result.insertedId, email });
+  }
+
+  static async getMe(req, res) {
+    const token = req.headers['x-token'];
+
+    if (!token) {
+      res.status(400).json({ error: 'Missing token' });
+    }
+
+    const email = await redisClient.get(`auth_${token}`);
+    if (!email) {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = dbClient.getUser(email);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    res.json({ id: user.id, email: user.email });
   }
 }
