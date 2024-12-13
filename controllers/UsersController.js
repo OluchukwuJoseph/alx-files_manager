@@ -1,5 +1,5 @@
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+import getUserFromToken from '../utils/auth';
 
 /**
  * UserController manages user-related operations, primarily user registration.
@@ -67,25 +67,18 @@ export default class UserController {
   }
 
   static async getMe(req, res) {
-    const token = req.headers['x-token'];
+    try {
+      const token = req.headers['x-token'];
+      const user = getUserFromToken(token);
 
-    if (!token) {
-      res.status(400).json({ error: 'Missing token' });
-      return;
+      res.json({ id: user._id, email: user.email });
+    } catch (err) {
+      console.log(`An error occured while retriving user from token: ${err.message}`);
+      if (err.message === 'Unauthorized') {
+        res.status(401).json({ error: err.message });
+        return;
+      }
+      res.status(400).json({ error: err.message });
     }
-
-    const email = await redisClient.get(`auth_${token}`);
-    if (!email) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const user = await dbClient.getUser(email);
-    if (!user) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    res.json({ id: user._id, email: user.email });
   }
 }

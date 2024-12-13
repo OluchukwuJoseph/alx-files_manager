@@ -22,16 +22,15 @@ class DBClient {
     const DB_DATABASE = process.env.DB_DATABASE || 'file_manager';
     const url = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
-    this.client = new MongoClient(url, { useUnifiedTopology: true, useNewUrlParser: true });
-
-    this.client.connect()
-      .then(() => {
-        // Select the database, using environment variable or default 'file_manager'
-        this.db = this.client.db(DB_DATABASE);
-      })
-      .catch((error) => {
-        console.log(`Error connecting to Mongodb: ${error.message}`);
-      });
+    MongoClient(url, { useUnifiedTopology: true, useNewUrlParser: true }, (err, client) => {
+      if (!err) {
+        this.db = client.db(DB_DATABASE);
+        this.usersCollection = this.db.collection('users');
+        this.filesCollection = this.db.collection('files');
+      } else {
+        console.log(`Error connecting to Mongodb: ${err.message}`);
+      }
+    });
   }
 
   /**
@@ -51,9 +50,6 @@ class DBClient {
    * @description Lazily initializes the users collection and counts its documents
    */
   async nbUsers() {
-    if (!this.usersCollection) {
-      this.usersCollection = this.db.collection('users');
-    }
     const usersCount = await this.usersCollection.countDocuments();
     return usersCount;
   }
@@ -65,9 +61,6 @@ class DBClient {
    * @description Lazily initializes the files collection and counts its documents
    */
   async nbFiles() {
-    if (!this.filesCollection) {
-      this.filesCollection = this.db.collection('files');
-    }
     const filesCount = await this.filesCollection.countDocuments();
     return filesCount;
   }
@@ -127,8 +120,6 @@ class DBClient {
       this.usersCollection = this.db.collection('users');
     }
 
-    console.log(password, SHA1(password));
-    console.log(password === SHA1(password));
     // Insert new user with hashed password
     const result = await this.usersCollection.insertOne({
       email,
