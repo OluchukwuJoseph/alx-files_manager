@@ -69,7 +69,7 @@ export default class UserController {
   static async getMe(req, res) {
     try {
       const token = req.headers['x-token'];
-      const user = getUserFromToken(token);
+      const user = await getUserFromToken(token);
 
       res.json({ id: user._id, email: user.email });
     } catch (err) {

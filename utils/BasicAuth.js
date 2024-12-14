@@ -36,8 +36,10 @@ export default class BasicAuth {
 
     const colonIndex = authorizationHeader.indexOf(':');
 
-    return {email: authorizationHeader.slice(0, colonIndex),
-      password: authorizationHeader.slice(colonIndex + 1)};
+    return {
+      email: authorizationHeader.slice(0, colonIndex),
+      password: authorizationHeader.slice(colonIndex + 1),
+    };
   }
 
   static getCredentials(encodedHeader) {

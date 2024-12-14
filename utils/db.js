@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import SHA1 from 'sha1';
 
 /**
@@ -22,15 +22,19 @@ class DBClient {
     const DB_DATABASE = process.env.DB_DATABASE || 'file_manager';
     const url = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
-    MongoClient(url, { useUnifiedTopology: true, useNewUrlParser: true }, (err, client) => {
-      if (!err) {
-        this.db = client.db(DB_DATABASE);
-        this.usersCollection = this.db.collection('users');
-        this.filesCollection = this.db.collection('files');
-      } else {
-        console.log(`Error connecting to Mongodb: ${err.message}`);
-      }
-    });
+    MongoClient.connect(url,
+      { useUnifiedTopology: true, useNewUrlParser: true },
+      (err, client) => {
+        if (!err) {
+          this.db = client.db(DB_DATABASE);
+          this.usersCollection = this.db.collection('users');
+          this.filesCollection = this.db.collection('files');
+          this.connected = true;
+        } else {
+          this.connected = false;
+          console.log(`Error connecting to Mongodb: ${err.message}`);
+        }
+      });
   }
 
   /**
@@ -40,7 +44,7 @@ class DBClient {
    * @description Verifies whether an active connection to the database exists
    */
   isAlive() {
-    return this.client.isConnected();
+    return Boolean(this.connected);
   }
 
   /**
@@ -127,6 +131,37 @@ class DBClient {
     });
 
     return result;
+  }
+
+  async getParent(parentId, userId) {
+    const parent = await this.filesCollection.findOne({
+      _id: ObjectId(parentId),
+      userId: ObjectId(userId),
+    });
+    return parent;
+  }
+
+  async createFile(userId, name, type, parentId, isPublic, localPath = undefined) {
+    if (localPath) {
+      const file = await this.filesCollection.insertOne({
+        userId,
+        name,
+        type,
+        parentId,
+        isPublic,
+        localPath,
+      });
+      return file;
+    }
+
+    const folder = await this.filesCollection.insertOne({
+      userId,
+      name,
+      type,
+      isPublic,
+      parentId,
+    });
+    return folder;
   }
 }
 
