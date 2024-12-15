@@ -66,18 +66,48 @@ export default class UserController {
     res.json({ id: result.insertedId, email });
   }
 
+  /**
+   * Retrieves the current user's profile information.
+   *
+   * @static
+   * @async
+   * @method getMe
+   * @param {Object} req
+   * @param {Object} res
+   *
+   * @description
+   * Fetches and returns the current user's basic profile information:
+   * - Extracts authentication token from request headers
+   * - Retrieves user details using the token
+   * - Returns user ID and email
+   *
+   * @throws {Error} Handles various authentication and retrieval errors
+   *
+   * @returns {Object} JSON response with user profile details
+   * - 200 status code on successful retrieval
+   * - 401 status code for unauthorized access
+   * - 400 status code for other errors
+   */
   static async getMe(req, res) {
     try {
+      // Extract authentication token from request headers
       const token = req.headers['x-token'];
+
+      // Retrieve user details using the token
       const user = await getUserFromToken(token);
 
-      res.json({ id: user._id, email: user.email });
+      res.json({
+        id: user._id,
+        email: user.email,
+      });
     } catch (err) {
       console.log(`An error occured while retriving user from token: ${err.message}`);
+      // Handle unauthorized access specifically
       if (err.message === 'Unauthorized') {
         res.status(401).json({ error: err.message });
         return;
       }
+      // Respond with 400 status for other errors
       res.status(400).json({ error: err.message });
     }
   }

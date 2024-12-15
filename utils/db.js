@@ -133,15 +133,50 @@ class DBClient {
     return result;
   }
 
-  async getParent(parentId, userId) {
-    const parent = await this.filesCollection.findOne({
-      _id: ObjectId(parentId),
+  /**
+   * Retrieves a specific file or folder by its ID and user ID.
+   *
+   * @async
+   * @method getFile
+   * @param {string} id - Unique identifier of the file or folder
+   * @param {string} userId - ID of the user who owns the file
+   *
+   * @description
+   * Searches the files collection for a document matching both the file ID
+   * and the user ID, ensuring users can only access their own files.
+   *
+   * @returns {Object|null} The file/folder document or null if not found
+   */
+  async getFile(id, userId) {
+    const file = await this.filesCollection.findOne({
+      _id: id,
       userId: ObjectId(userId),
     });
-    return parent;
+    return file;
   }
 
+  /**
+   * Creates a new file or folder entry in the database.
+   *
+   * @async
+   * @method createFile
+   * @param {string} userId - ID of the user creating the file/folder
+   * @param {string} name - Name of the file or folder
+   * @param {string} type - Type of the entry (file/folder/image)
+   * @param {string} parentId - ID of the parent folder (if applicable)
+   * @param {boolean} isPublic - Indicates if the file/folder is publicly accessible
+   * @param {string} [localPath] - Local file system path for file storage (optional)
+   *
+   * @description
+   * Inserts a new file or folder document into the database.
+   * Handles two scenarios:
+   * - Files with a local path (actual file storage)
+   * - Folders or files without local path
+   *
+   * @returns {Object}
+   */
   async createFile(userId, name, type, parentId, isPublic, localPath = undefined) {
+    // Check if a local path is provided (indicates an actual file)
     if (localPath) {
       const file = await this.filesCollection.insertOne({
         userId,
@@ -154,6 +189,7 @@ class DBClient {
       return file;
     }
 
+    // Insert folder or file without local path (typically for folders)
     const folder = await this.filesCollection.insertOne({
       userId,
       name,
@@ -162,6 +198,32 @@ class DBClient {
       parentId,
     });
     return folder;
+  }
+
+  /**
+   * Retrieves a paginated list of files or folders for a specific parent folder.
+   *
+   * @async
+   * @method getFiles
+   * @param {string} parentId - ID of the parent folder to filter by
+   * @param {string} userId - ID of the user to filter by
+   * @param {number} offset - Number of documents to skip (for pagination)
+   * @param {number} limit - Maximum number of documents to return
+   *
+   * @description
+   * Fetches files/folders belonging to a specific user within a given parent folder.
+   * Implements pagination by using skip and limit.
+   *
+   * @returns {Array} List of file/folder documents matching the criteria
+   */
+  async getFiles(parentId, userId, offset, limit) {
+    // Find files/folders matching the parent folder and user ID
+    const files = await this.filesCollection.find({ parentId, userId })
+      .skip(offset) // Skip the first 20 documents
+      .limit(limit) // Limit the results to 20 documents
+      .toArray();
+
+    return files;
   }
 }
 

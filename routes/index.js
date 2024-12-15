@@ -14,5 +14,7 @@ index.get('/connect', AuthController.getConnect);
 index.get('/disconnect', AuthController.getDisconnect);
 index.get('/users/me', UserController.getMe);
 index.post('/files', FileController.postUpload);
+index.get('/files/:id', FileController.getShow);
+index.get('/files', FileController.getIndex);
 
 export default index;
